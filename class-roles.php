@@ -41,23 +41,28 @@ class AfricaLife_Roles {
     }
     
     public static function create_agent($username, $email, $password, $first_name = '', $last_name = '') {
-        $user_data = array(
-            'user_login' => $username,
-            'user_email' => $email,
-            'user_pass' => $password,
-            'first_name' => $first_name,
-            'last_name' => $last_name,
-            'role' => 'africa_life_agent'
-        );
-        
-        $user_id = wp_insert_user($user_data);
-        
-        if (is_wp_error($user_id)) {
-            return $user_id;
-        }
-        
+    $user_data = array(
+        'user_login' => $username,
+        'user_email' => $email,
+        'user_pass' => $password,
+        'first_name' => $first_name,
+        'last_name' => $last_name,
+        'display_name' => trim($first_name . ' ' . $last_name) ?: $username,
+        'role' => 'africa_life_agent'
+    );
+    
+    $user_id = wp_insert_user($user_data);
+    
+    if (is_wp_error($user_id)) {
         return $user_id;
     }
+    
+    // Update user meta
+    update_user_meta($user_id, 'first_name', $first_name);
+    update_user_meta($user_id, 'last_name', $last_name);
+    
+    return $user_id;
+}
     
     public static function get_agents() {
         $users = get_users(array(
