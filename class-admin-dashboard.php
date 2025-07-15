@@ -28,6 +28,7 @@ class AfricaLife_Admin_Dashboard {
                 </div>
                 
                 <form id="admin-login-form" class="space-y-6">
+                    
                     <?php wp_nonce_field('africa_life_admin_login', 'nonce'); ?>
                     
                     <div>
@@ -675,470 +676,582 @@ class AfricaLife_Admin_Dashboard {
     }
     
     // Continue with other tab methods...
-    private function render_plans_tab() {
-        $plans = AfricaLife_Database::get_plans();
+private function render_plans_tab() {
+    $plans = AfricaLife_Database::get_plans();
+    
+    ob_start();
+    ?>
+    <div class="p-8">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-semibold text-yellow-400">Plans Management</h2>
+            <button id="add-plan-btn" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center">
+                <span class="mr-2">➕</span> Add New Plan
+            </button>
+        </div>
         
-        ob_start();
-        ?>
-        <div class="p-8">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-semibold text-yellow-400">Plans Management</h2>
-                <button id="add-plan-btn" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center">
-                    <span class="mr-2">➕</span> Add New Plan
+        <?php if (empty($plans)): ?>
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">📋</div>
+                <p class="text-gray-400 text-lg mb-4">No plans found.</p>
+                <button onclick="jQuery('#add-plan-btn').click()" class="bg-yellow-600 hover:bg-yellow-700 text-black px-6 py-3 rounded-lg font-semibold">
+                    Create Your First Plan
                 </button>
             </div>
-            
-            <?php if (empty($plans)): ?>
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">📋</div>
-                    <p class="text-gray-400 text-lg mb-4">No plans found.</p>
-                    <button onclick="jQuery('#add-plan-btn').click()" class="bg-yellow-600 hover:bg-yellow-700 text-black px-6 py-3 rounded-lg font-semibold">
-                        Create Your First Plan
-                    </button>
-                </div>
-            <?php else: ?>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <?php foreach ($plans as $plan): ?>
-                        <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-yellow-400 transition-colors duration-300">
-                            <div class="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 class="text-xl font-semibold text-yellow-300"><?php echo esc_html($plan->plan_name); ?></h3>
-                                    <p class="text-sm text-gray-400">Code: <?php echo esc_html($plan->plan_code); ?></p>
-                                </div>
-                                <div class="flex space-x-2">
-                                    <button class="edit-plan-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200" 
-                                            data-plan-id="<?php echo $plan->id; ?>"
-                                            data-plan-name="<?php echo esc_attr($plan->plan_name); ?>"
-                                            data-categories='<?php echo esc_attr(json_encode($plan->categories)); ?>'>
-                                        Edit
-                                    </button>
-                                    <button class="delete-plan-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200" 
-                                            data-plan-id="<?php echo $plan->id; ?>">
-                                        Delete
-                                    </button>
-                                </div>
+        <?php else: ?>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <?php foreach ($plans as $plan): ?>
+                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 hover:border-yellow-400 transition-colors duration-300">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-yellow-300"><?php echo esc_html($plan->plan_name); ?></h3>
+                                <p class="text-sm text-gray-400">Code: <?php echo esc_html($plan->plan_code); ?></p>
                             </div>
-                            
-                            <div class="space-y-3">
-                                <?php
-                                $categories = is_array($plan->categories) ? $plan->categories : json_decode($plan->categories, true);
-                                $total_premium = 0;
-                                if ($categories):
-                                    foreach ($categories as $category):
-                                        $total_premium += floatval($category['rate']);
-                                ?>
-                                    <div class="bg-gray-700 p-4 rounded-lg">
-                                        <div class="flex justify-between items-center mb-2">
-                                            <span class="font-medium text-white"><?php echo esc_html($category['name']); ?></span>
-                                            <span class="text-gray-400 text-sm"><?php echo esc_html($category['age_range']); ?></span>
-                                        </div>
-                                        <div class="flex justify-between text-sm text-gray-300">
-                                            <span>Premium: <span class="text-yellow-400 font-semibold">R<?php echo number_format($category['rate'], 2); ?></span></span>
-                                            <span>Cover: <span class="text-green-400 font-semibold">R<?php echo number_format($category['cover_amount'], 2); ?></span></span>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                                
-                                <div class="border-t border-gray-600 pt-3">
-                                    <div class="flex justify-between items-center">
-                                        <span class="font-semibold">Total Premium:</span>
-                                        <span class="text-xl font-bold text-yellow-400">R<?php echo number_format($total_premium, 2); ?></span>
-                                    </div>
-                                </div>
-                                <?php endif; ?>
+                            <div class="flex space-x-2">
+                                <button class="edit-plan-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200" 
+                                        data-plan-id="<?php echo $plan->id; ?>"
+                                        data-plan-name="<?php echo esc_attr($plan->plan_name); ?>"
+                                        data-categories='<?php echo esc_attr(json_encode($plan->categories)); ?>'>
+                                    Edit
+                                </button>
+                                <button class="delete-plan-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200" 
+                                        data-plan-id="<?php echo $plan->id; ?>">
+                                    Delete
+                                </button>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </div>
+                        
+                        <div class="space-y-3">
+                            <?php
+                            $categories = is_array($plan->categories) ? $plan->categories : json_decode($plan->categories, true);
+                            $total_premium = 0;
+                            if ($categories):
+                                foreach ($categories as $category):
+                                    $total_premium += floatval($category['rate']);
+                            ?>
+                                <div class="bg-gray-700 p-4 rounded-lg">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="font-medium text-white"><?php echo esc_html($category['name']); ?></span>
+                                        <span class="text-gray-400 text-sm"><?php echo esc_html($category['age_range']); ?></span>
+                                    </div>
+                                    <div class="flex justify-between text-sm text-gray-300">
+                                        <span>Premium: <span class="text-yellow-400 font-semibold">R<?php echo number_format($category['rate'], 2); ?></span></span>
+                                        <span>Cover: <span class="text-green-400 font-semibold">R<?php echo number_format($category['cover_amount'], 2); ?></span></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                            
+                            <div class="border-t border-gray-600 pt-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-semibold">Total Premium:</span>
+                                    <span class="text-xl font-bold text-yellow-400">R<?php echo number_format($total_premium, 2); ?></span>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        console.log('Plans tab JavaScript loaded');
         
-        <script>
-        jQuery(document).ready(function($) {
-            // Add plan
-            $('#add-plan-btn').click(function() {
-                showPlanModal();
-            });
+        // Add plan button click handler
+        $('#add-plan-btn').off('click').on('click', function(e) {
+            e.preventDefault();
+            console.log('Add plan button clicked');
+            showPlanModal();
+        });
+        
+        // Edit plan button click handler - use event delegation
+        $(document).on('click', '.edit-plan-btn', function(e) {
+            e.preventDefault();
+            console.log('Edit plan button clicked');
+            var planId = $(this).data('plan-id');
+            var planName = $(this).data('plan-name');
+            var categories = $(this).data('categories');
+            showPlanModal(planId, planName, categories);
+        });
+        
+        // Delete plan button click handler - use event delegation
+        $(document).on('click', '.delete-plan-btn', function(e) {
+            e.preventDefault();
+            console.log('Delete plan button clicked');
+            var planId = $(this).data('plan-id');
+            if (confirm('Are you sure you want to delete this plan? This action cannot be undone.')) {
+                deletePlan(planId);
+            }
+        });
+        
+        var categoryIndex = 0;
+        
+        window.showPlanModal = function(planId, planName, categories) {
+            console.log('showPlanModal called', planId, planName, categories);
             
-            // Edit plan
-            $('.edit-plan-btn').click(function() {
-                var planId = $(this).data('plan-id');
-                var planName = $(this).data('plan-name');
-                var categories = $(this).data('categories');
-                showPlanModal(planId, planName, categories);
-            });
+            var title = planId ? 'Edit Plan' : 'Add New Funeral Cover Plan';
+            categoryIndex = 0;
             
-            // Delete plan
-            $('.delete-plan-btn').click(function() {
-                var planId = $(this).data('plan-id');
-                if (confirm('Are you sure you want to delete this plan? This action cannot be undone.')) {
-                    deletePlan(planId);
-                }
-            });
+            var content = '<form id="plan-form" class="space-y-6">' +
+                '<div>' +
+                    '<label class="block text-sm font-medium text-yellow-400 mb-2">Plan Name *</label>' +
+                    '<input type="text" name="plan_name" id="plan_name_input" required placeholder="e.g. Family Funeral Cover Plan" ' +
+                           'value="' + (planName || '') + '" ' +
+                           'class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
+                '</div>' +
+                '<div>' +
+                    '<label class="block text-sm font-medium text-yellow-400 mb-2">Coverage Categories</label>' +
+                    '<div id="categories-container" class="space-y-4"></div>' +
+                    '<button type="button" id="add-category-btn" class="mt-4 text-yellow-400 hover:text-yellow-300 text-sm font-medium inline-flex items-center">' +
+                        '<span class="mr-1">➕</span> Add Another Category' +
+                    '</button>' +
+                '</div>' +
+            '</form>';
             
-            function showPlanModal(planId, planName, categories) {
-                var title = planId ? 'Edit Plan' : 'Add New Funeral Cover Plan';
-                var categoryIndex = 0;
-                
-                var content = '<form id="plan-form" class="space-y-6">' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium text-yellow-400 mb-2">Plan Name *</label>' +
-                        '<input type="text" name="plan_name" required placeholder="e.g. Family Funeral Cover Plan" ' +
-                               'value="' + (planName || '') + '" ' +
-                               'class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
-                    '</div>' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium text-yellow-400 mb-2">Coverage Categories</label>' +
-                        '<div id="categories-container" class="space-y-4"></div>' +
-                        '<button type="button" id="add-category-btn" class="mt-4 text-yellow-400 hover:text-yellow-300 text-sm font-medium inline-flex items-center">' +
-                            '<span class="mr-1">➕</span> Add Another Category' +
-                        '</button>' +
-                    '</div>' +
-                '</form>';
-                
-                var actions = '<button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg mr-3 transition-colors duration-200" onclick="closeModal()">Cancel</button>' +
-                             '<button type="submit" form="plan-form" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black px-6 py-2 rounded-lg font-semibold transition-all duration-200">Save Plan</button>';
-                
-                showModal(title, content, actions);
-                
-                // Add existing categories or default category
-                if (categories && categories.length > 0) {
-                    $.each(categories, function(index, category) {
-                        addCategoryField(category);
-                    });
-                } else {
-                    addCategoryField();
-                }
-                
-                // Add category handler
-                $('#add-category-btn').click(function() {
-                    addCategoryField();
+            var actions = '<button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg mr-3 transition-colors duration-200" onclick="closeModal()">Cancel</button>' +
+                         '<button type="button" id="save-plan-btn" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black px-6 py-2 rounded-lg font-semibold transition-all duration-200">Save Plan</button>';
+            
+            showModal(title, content, actions);
+            
+            // Add existing categories or default category
+            if (categories && categories.length > 0) {
+                $.each(categories, function(index, category) {
+                    addCategoryField(category);
                 });
-                
-                // Form submit handler
-                $('#plan-form').submit(function(e) {
-                    e.preventDefault();
-                    savePlan(planId);
-                });
-                
-                function addCategoryField(category) {
-                    var html = '<div class="category-item bg-gray-800 p-4 rounded-lg border border-gray-600">' +
-                        '<div class="flex justify-between items-center mb-3">' +
-                            '<span class="text-sm text-yellow-400 font-medium">Category ' + (categoryIndex + 1) + '</span>' +
-                            (categoryIndex > 0 ? '<button type="button" class="remove-category text-red-400 hover:text-red-300 text-sm font-medium">Remove</button>' : '') +
-                        '</div>' +
-                        '<div class="grid grid-cols-2 gap-3">' +
-                            '<div>' +
-                                '<label class="block text-xs font-medium text-gray-300 mb-1">Category Name *</label>' +
-                                '<input type="text" name="categories[' + categoryIndex + '][name]" required ' +
-                                       'value="' + (category ? category.name : '') + '" ' +
-                                       'placeholder="e.g. Principal Member" ' +
-                                       'class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
-                            '</div>' +
-                            '<div>' +
-                                '<label class="block text-xs font-medium text-gray-300 mb-1">Age Range *</label>' +
-                                '<input type="text" name="categories[' + categoryIndex + '][age_range]" required ' +
-                                       'value="' + (category ? category.age_range : '') + '" ' +
-                                       'placeholder="e.g. 18-64 years" ' +
-                                       'class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
-                            '</div>' +
-                            '<div>' +
-                                '<label class="block text-xs font-medium text-gray-300 mb-1">Monthly Premium (R) *</label>' +
-                                '<input type="number" step="0.01" min="0" name="categories[' + categoryIndex + '][rate]" required ' +
-                                       'value="' + (category ? category.rate : '') + '" ' +
-                                       'placeholder="150.00" ' +
-                                       'class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
-                            '</div>' +
-                            '<div>' +
-                                '<label class="block text-xs font-medium text-gray-300 mb-1">Cover Amount (R) *</label>' +
-                                '<input type="number" step="0.01" min="0" name="categories[' + categoryIndex + '][cover_amount]" required ' +
-                                       'value="' + (category ? category.cover_amount : '') + '" ' +
-                                       'placeholder="25000.00" ' +
-                                       'class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
-                            '</div>' +
-                        '</div>' +
-                        '<div class="mt-3">' +
-                            '<label class="block text-xs font-medium text-gray-300 mb-1">Terms</label>' +
-                            '<input type="text" name="categories[' + categoryIndex + '][terms]" ' +
-                                   'value="' + (category ? (category.terms || '') : '') + '" ' +
-                                   'placeholder="e.g. 6 months waiting period" ' +
-                                   'class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
-                        '</div>' +
-                    '</div>';
-                    
-                    $('#categories-container').append(html);
-                    categoryIndex++;
-                }
-                
-                // Remove category handler
-                $(document).on('click', '.remove-category', function() {
-                    $(this).closest('.category-item').remove();
-                });
+            } else {
+                addCategoryField();
             }
             
-            function savePlan(planId) {
-                var formData = $('#plan-form').serializeArray();
-                var data = {
-                    action: 'africa_life_save_plan',
-                    nonce: africa_life_ajax.nonce,
-                    plan_name: '',
-                    categories: []
+            // Add category button handler
+            $('#add-category-btn').off('click').on('click', function(e) {
+                e.preventDefault();
+                console.log('Add category clicked');
+                addCategoryField();
+            });
+            
+            // Save plan button handler
+            $('#save-plan-btn').off('click').on('click', function(e) {
+                e.preventDefault();
+                console.log('Save plan clicked');
+                
+                // Validate form
+                var planNameInput = $('#plan_name_input');
+                if (!planNameInput.val().trim()) {
+                    showNotification('Please enter a plan name', 'error');
+                    planNameInput.focus();
+                    return;
+                }
+                
+                savePlan(planId);
+            });
+        };
+        
+        window.addCategoryField = function(category) {
+            console.log('Adding category field', categoryIndex, category);
+            
+            var html = '<div class="category-item bg-gray-800 p-4 rounded-lg border border-gray-600" data-index="' + categoryIndex + '">' +
+                '<div class="flex justify-between items-center mb-3">' +
+                    '<span class="text-sm text-yellow-400 font-medium">Category ' + (categoryIndex + 1) + '</span>' +
+                    (categoryIndex > 0 ? '<button type="button" class="remove-category text-red-400 hover:text-red-300 text-sm font-medium">Remove</button>' : '') +
+                '</div>' +
+                '<div class="grid grid-cols-2 gap-3">' +
+                    '<div>' +
+                        '<label class="block text-xs font-medium text-gray-300 mb-1">Category Name *</label>' +
+                        '<input type="text" name="cat_name_' + categoryIndex + '" required ' +
+                               'value="' + (category ? category.name : '') + '" ' +
+                               'placeholder="e.g. Principal Member" ' +
+                               'class="cat-name w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-xs font-medium text-gray-300 mb-1">Age Range *</label>' +
+                        '<input type="text" name="cat_age_' + categoryIndex + '" required ' +
+                               'value="' + (category ? category.age_range : '') + '" ' +
+                               'placeholder="e.g. 18-64 years" ' +
+                               'class="cat-age w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-xs font-medium text-gray-300 mb-1">Monthly Premium (R) *</label>' +
+                        '<input type="number" step="0.01" min="0" name="cat_rate_' + categoryIndex + '" required ' +
+                               'value="' + (category ? category.rate : '') + '" ' +
+                               'placeholder="150.00" ' +
+                               'class="cat-rate w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-xs font-medium text-gray-300 mb-1">Cover Amount (R) *</label>' +
+                        '<input type="number" step="0.01" min="0" name="cat_cover_' + categoryIndex + '" required ' +
+                               'value="' + (category ? category.cover_amount : '') + '" ' +
+                               'placeholder="25000.00" ' +
+                               'class="cat-cover w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="mt-3">' +
+                    '<label class="block text-xs font-medium text-gray-300 mb-1">Terms</label>' +
+                    '<input type="text" name="cat_terms_' + categoryIndex + '" ' +
+                           'value="' + (category ? (category.terms || '') : '') + '" ' +
+                           'placeholder="e.g. 6 months waiting period" ' +
+                           'class="cat-terms w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400">' +
+                '</div>' +
+            '</div>';
+            
+            $('#categories-container').append(html);
+            categoryIndex++;
+            
+            // Bind remove handler to newly added remove buttons
+            $('.remove-category').off('click').on('click', function(e) {
+                e.preventDefault();
+                $(this).closest('.category-item').remove();
+            });
+        };
+        
+        window.savePlan = function(planId) {
+            console.log('savePlan called', planId);
+            
+            var categories = [];
+            
+            // Collect all categories
+            $('#categories-container .category-item').each(function() {
+                var item = $(this);
+                var category = {
+                    name: item.find('.cat-name').val(),
+                    age_range: item.find('.cat-age').val(),
+                    rate: item.find('.cat-rate').val(),
+                    cover_amount: item.find('.cat-cover').val(),
+                    terms: item.find('.cat-terms').val() || ''
                 };
                 
-                if (planId) {
-                    data.plan_id = planId;
+                console.log('Category collected:', category);
+                
+                if (category.name && category.rate && category.cover_amount) {
+                    categories.push(category);
                 }
-                
-                // Parse form data
-                $.each(formData, function(index, field) {
-                    if (field.name === 'plan_name') {
-                        data.plan_name = field.value;
-                    } else if (field.name.includes('categories')) {
-                        var matches = field.name.match(/categories\[(\d+)\]\[(\w+)\]/);
-                        if (matches) {
-                            var catIndex = parseInt(matches[1]);
-                            var fieldName = matches[2];
-                            
-                            if (!data.categories[catIndex]) {
-                                data.categories[catIndex] = {};
-                            }
-                            
-                            data.categories[catIndex][fieldName] = field.value;
-                        }
-                    }
-                });
-                
-                // Clean up categories array
-                data.categories = data.categories.filter(function(cat) {
-                    return cat && cat.name && cat.rate && cat.cover_amount;
-                });
-                
-                $.ajax({
-                    url: ajaxUrl,
-                    type: 'POST',
-                    data: data,
-                    success: function(response) {
-                        if (response.success) {
-                            showNotification('Plan saved successfully', 'success');
-                            closeModal();
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            showNotification('Error: ' + (response.data || 'Unknown error'), 'error');
-                        }
-                    },
-                    error: function() {
-                        showNotification('An error occurred while saving the plan.', 'error');
-                    }
-                });
+            });
+            
+            if (categories.length === 0) {
+                showNotification('Please add at least one category', 'error');
+                return;
             }
             
-            function deletePlan(planId) {
-                $.ajax({
-                    url: ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'africa_life_delete_plan',
-                        plan_id: planId,
-                        nonce: africa_life_ajax.nonce
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            showNotification('Plan deleted successfully', 'success');
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            showNotification('Error: ' + (response.data || 'Unknown error'), 'error');
-                        }
-                    },
-                    error: function() {
-                        showNotification('An error occurred while deleting the plan.', 'error');
-                    }
-                });
+            var data = {
+                action: 'africa_life_save_plan',
+                nonce: '<?php echo wp_create_nonce('africa_life_admin'); ?>',
+                plan_name: $('#plan_name_input').val(),
+                categories: JSON.stringify(categories)
+            };
+            
+            if (planId) {
+                data.plan_id = planId;
             }
-        });
-        </script>
-        <?php
-        return ob_get_clean();
-    }
-    
-    private function render_agents_tab() {
-        $agents = AfricaLife_Roles::get_agents();
+            
+            console.log('Sending plan data:', data);
+            
+            // Disable button to prevent double submission
+            $('#save-plan-btn').prop('disabled', true).text('Saving...');
+            
+            $.ajax({
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                type: 'POST',
+                data: data,
+                success: function(response) {
+                    console.log('Plan save response:', response);
+                    if (response.success) {
+                        showNotification('Plan saved successfully', 'success');
+                        closeModal();
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification('Error: ' + (response.data || 'Unknown error'), 'error');
+                        $('#save-plan-btn').prop('disabled', false).text('Save Plan');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Plan save error:', error);
+                    console.error('Response:', xhr.responseText);
+                    showNotification('An error occurred while saving the plan.', 'error');
+                    $('#save-plan-btn').prop('disabled', false).text('Save Plan');
+                }
+            });
+        };
         
-        ob_start();
-        ?>
-        <div class="p-8">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-2xl font-semibold text-yellow-400">Agents Management</h2>
-                <button id="add-agent-btn" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center">
-                    <span class="mr-2">👤</span> Add New Agent
-                </button>
-            </div>
+        window.deletePlan = function(planId) {
+            console.log('deletePlan called', planId);
             
-            <?php if (empty($agents)): ?>
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">👥</div>
-                    <p class="text-gray-400 text-lg mb-4">No agents found.</p>
-                    <button onclick="jQuery('#add-agent-btn').click()" class="bg-yellow-600 hover:bg-yellow-700 text-black px-6 py-3 rounded-lg font-semibold">
-                        Create Your First Agent
-                    </button>
-                </div>
-            <?php else: ?>
-                <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-white">
-                            <thead class="text-xs text-gray-300 uppercase bg-gray-700">
-                                <tr>
-                                    <th class="px-6 py-4">Name</th>
-                                    <th class="px-6 py-4">Username</th>
-                                    <th class="px-6 py-4">Email</th>
-                                    <th class="px-6 py-4">Registered</th>
-                                    <th class="px-6 py-4">Submissions</th>
-                                    <th class="px-6 py-4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($agents as $agent): ?>
-                                    <tr class="border-b border-gray-700 hover:bg-gray-750 transition-colors duration-200">
-                                        <td class="px-6 py-4 font-medium text-yellow-400">
-                                            <?php echo esc_html(trim($agent->first_name . ' ' . $agent->last_name) ?: $agent->display_name); ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-gray-300">
-                                            <?php echo esc_html($agent->user_login); ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-gray-300">
-                                            <?php echo esc_html($agent->user_email); ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-gray-300">
-                                            <?php echo esc_html(date('Y-m-d', strtotime($agent->user_registered))); ?>
-                                        </td>
-                                        <td class="px-6 py-4 text-center">
-                                            <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                                                <?php echo $this->get_agent_submission_count($agent->ID); ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <button class="delete-agent-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200" 
-                                                    data-agent-id="<?php echo $agent->ID; ?>">
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            <?php endif; ?>
+            $.ajax({
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                type: 'POST',
+                data: {
+                    action: 'africa_life_delete_plan',
+                    plan_id: planId,
+                    nonce: '<?php echo wp_create_nonce('africa_life_admin'); ?>'
+                },
+                success: function(response) {
+                    console.log('Plan delete response:', response);
+                    if (response.success) {
+                        showNotification('Plan deleted successfully', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification('Error: ' + (response.data || 'Unknown error'), 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Plan delete error:', error);
+                    showNotification('An error occurred while deleting the plan.', 'error');
+                }
+            });
+        };
+    });
+    </script>
+    <?php
+    return ob_get_clean();
+}
+    private function render_agents_tab() {
+    $agents = AfricaLife_Roles::get_agents();
+    
+    ob_start();
+    ?>
+    <div class="p-8">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-semibold text-yellow-400">Agents Management</h2>
+            <button id="add-agent-btn" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center">
+                <span class="mr-2">👤</span> Add New Agent
+            </button>
         </div>
         
-        <script>
-        jQuery(document).ready(function($) {
-            $('#add-agent-btn').click(function() {
-                showAgentModal();
-            });
-            
-            $('.delete-agent-btn').click(function() {
-                var agentId = $(this).data('agent-id');
-                if (confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
-                    deleteAgent(agentId);
-                }
-            });
-            
-            function showAgentModal() {
-                var content = '<form id="agent-form" class="space-y-6">' +
-                    '<div class="grid grid-cols-2 gap-4">' +
-                        '<div>' +
-                            '<label class="block text-sm font-medium text-yellow-400 mb-2">First Name *</label>' +
-                            '<input type="text" name="first_name" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
-                        '</div>' +
-                        '<div>' +
-                            '<label class="block text-sm font-medium text-yellow-400 mb-2">Last Name *</label>' +
-                            '<input type="text" name="last_name" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
-                        '</div>' +
-                    '</div>' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium text-yellow-400 mb-2">Username *</label>' +
-                        '<input type="text" name="username" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
-                        '<p class="text-xs text-gray-400 mt-1">This will be used for login</p>' +
-                    '</div>' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium text-yellow-400 mb-2">Email *</label>' +
-                        '<input type="email" name="email" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
-                    '</div>' +
-                    '<div>' +
-                        '<label class="block text-sm font-medium text-yellow-400 mb-2">Password *</label>' +
-                        '<input type="password" name="password" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
-                        '<p class="text-xs text-gray-400 mt-1">Minimum 6 characters</p>' +
-                    '</div>' +
-                '</form>';
-                
-                var actions = '<button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg mr-3 transition-colors duration-200" onclick="closeModal()">Cancel</button>' +
-                             '<button type="submit" form="agent-form" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black px-6 py-2 rounded-lg font-semibold transition-all duration-200">Create Agent</button>';
-                
-                showModal('Add New Agent', content, actions);
-                
-                $('#agent-form').submit(function(e) {
-                    e.preventDefault();
-                    createAgent();
-                });
-            }
-            
-            function createAgent() {
-                var formData = $('#agent-form').serialize();
-                
-                $.ajax({
-                    url: ajaxUrl,
-                    type: 'POST',
-                    data: formData + '&action=africa_life_create_agent&nonce=' + africa_life_ajax.nonce,
-                    success: function(response) {
-                        if (response.success) {
-                            showNotification('Agent created successfully', 'success');
-                            closeModal();
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            showNotification('Error: ' + (response.data || 'Unknown error'), 'error');
-                        }
-                    },
-                    error: function() {
-                        showNotification('An error occurred while creating the agent.', 'error');
-                    }
-                });
-            }
-            
-            function deleteAgent(agentId) {
-                $.ajax({
-                    url: ajaxUrl,
-                    type: 'POST',
-                    data: {
-                        action: 'africa_life_delete_agent',
-                        user_id: agentId,
-                        nonce: africa_life_ajax.nonce
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            showNotification('Agent deleted successfully', 'success');
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1000);
-                        } else {
-                            showNotification('Error: ' + (response.data || 'Unknown error'), 'error');
-                        }
-                    },
-                    error: function() {
-                        showNotification('An error occurred while deleting the agent.', 'error');
-                    }
-                });
+        <?php if (empty($agents)): ?>
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">👥</div>
+                <p class="text-gray-400 text-lg mb-4">No agents found.</p>
+                <button onclick="jQuery('#add-agent-btn').click()" class="bg-yellow-600 hover:bg-yellow-700 text-black px-6 py-3 rounded-lg font-semibold">
+                    Create Your First Agent
+                </button>
+            </div>
+        <?php else: ?>
+            <div class="bg-gray-800 rounded-xl overflow-hidden border border-gray-700">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-white">
+                        <thead class="text-xs text-gray-300 uppercase bg-gray-700">
+                            <tr>
+                                <th class="px-6 py-4">Name</th>
+                                <th class="px-6 py-4">Username</th>
+                                <th class="px-6 py-4">Email</th>
+                                <th class="px-6 py-4">Registered</th>
+                                <th class="px-6 py-4">Submissions</th>
+                                <th class="px-6 py-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($agents as $agent): ?>
+                                <tr class="border-b border-gray-700 hover:bg-gray-750 transition-colors duration-200">
+                                    <td class="px-6 py-4 font-medium text-yellow-400">
+                                        <?php echo esc_html(trim($agent->first_name . ' ' . $agent->last_name) ?: $agent->display_name); ?>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-300">
+                                        <?php echo esc_html($agent->user_login); ?>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-300">
+                                        <?php echo esc_html($agent->user_email); ?>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-300">
+                                        <?php echo esc_html(date('Y-m-d', strtotime($agent->user_registered))); ?>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                            <?php echo $this->get_agent_submission_count($agent->ID); ?>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <button class="delete-agent-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors duration-200" 
+                                                data-agent-id="<?php echo $agent->ID; ?>">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        console.log('Agents tab JavaScript loaded');
+        
+        // Add agent button click handler
+        $('#add-agent-btn').off('click').on('click', function(e) {
+            e.preventDefault();
+            console.log('Add agent button clicked');
+            showAgentModal();
+        });
+        
+        // Delete agent button click handler - use event delegation
+        $(document).on('click', '.delete-agent-btn', function(e) {
+            e.preventDefault();
+            console.log('Delete agent button clicked');
+            var agentId = $(this).data('agent-id');
+            if (confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
+                deleteAgent(agentId);
             }
         });
-        </script>
-        <?php
-        return ob_get_clean();
-    }
+        
+        window.showAgentModal = function() {
+            console.log('showAgentModal called');
+            
+            var content = '<form id="agent-form" class="space-y-6">' +
+                '<div class="grid grid-cols-2 gap-4">' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium text-yellow-400 mb-2">First Name *</label>' +
+                        '<input type="text" name="first_name" id="agent_first_name" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
+                    '</div>' +
+                    '<div>' +
+                        '<label class="block text-sm font-medium text-yellow-400 mb-2">Last Name *</label>' +
+                        '<input type="text" name="last_name" id="agent_last_name" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
+                    '</div>' +
+                '</div>' +
+                '<div>' +
+                    '<label class="block text-sm font-medium text-yellow-400 mb-2">Username *</label>' +
+                    '<input type="text" name="username" id="agent_username" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
+                    '<p class="text-xs text-gray-400 mt-1">This will be used for login</p>' +
+                '</div>' +
+                '<div>' +
+                    '<label class="block text-sm font-medium text-yellow-400 mb-2">Email *</label>' +
+                    '<input type="email" name="email" id="agent_email" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
+                '</div>' +
+                '<div>' +
+                    '<label class="block text-sm font-medium text-yellow-400 mb-2">Password *</label>' +
+                    '<input type="password" name="password" id="agent_password" required class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400">' +
+                    '<p class="text-xs text-gray-400 mt-1">Minimum 6 characters</p>' +
+                '</div>' +
+            '</form>';
+            
+            var actions = '<button type="button" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg mr-3 transition-colors duration-200" onclick="closeModal()">Cancel</button>' +
+                         '<button type="button" id="create-agent-btn" class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black px-6 py-2 rounded-lg font-semibold transition-all duration-200">Create Agent</button>';
+            
+            showModal('Add New Agent', content, actions);
+            
+            // Create agent button handler
+            $('#create-agent-btn').off('click').on('click', function(e) {
+                e.preventDefault();
+                console.log('Create agent clicked');
+                
+                // Validate form
+                var isValid = true;
+                $('#agent-form input[required]').each(function() {
+                    if (!$(this).val().trim()) {
+                        $(this).addClass('border-red-500');
+                        isValid = false;
+                    } else {
+                        $(this).removeClass('border-red-500');
+                    }
+                });
+                
+                if (!isValid) {
+                    showNotification('Please fill in all required fields', 'error');
+                    return;
+                }
+                
+                // Validate email
+                var email = $('#agent_email').val();
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showNotification('Please enter a valid email address', 'error');
+                    $('#agent_email').addClass('border-red-500');
+                    return;
+                }
+                
+                // Validate password length
+                var password = $('#agent_password').val();
+                if (password.length < 6) {
+                    showNotification('Password must be at least 6 characters long', 'error');
+                    $('#agent_password').addClass('border-red-500');
+                    return;
+                }
+                
+                createAgent();
+            });
+        };
+        
+        window.createAgent = function() {
+            console.log('createAgent called');
+            
+            var data = {
+                action: 'africa_life_create_agent',
+                nonce: '<?php echo wp_create_nonce('africa_life_admin'); ?>',
+                first_name: $('#agent_first_name').val(),
+                last_name: $('#agent_last_name').val(),
+                username: $('#agent_username').val(),
+                email: $('#agent_email').val(),
+                password: $('#agent_password').val()
+            };
+            
+            console.log('Sending agent data:', data);
+            
+            // Disable button to prevent double submission
+            $('#create-agent-btn').prop('disabled', true).text('Creating...');
+            
+            $.ajax({
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                type: 'POST',
+                data: data,
+                success: function(response) {
+                    console.log('Agent create response:', response);
+                    if (response.success) {
+                        showNotification('Agent created successfully', 'success');
+                        closeModal();
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification('Error: ' + (response.data || 'Unknown error'), 'error');
+                        $('#create-agent-btn').prop('disabled', false).text('Create Agent');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Agent create error:', error);
+                    console.error('Response:', xhr.responseText);
+                    showNotification('An error occurred while creating the agent.', 'error');
+                    $('#create-agent-btn').prop('disabled', false).text('Create Agent');
+                }
+            });
+        };
+        
+        window.deleteAgent = function(agentId) {
+            console.log('deleteAgent called', agentId);
+            
+            $.ajax({
+                url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                type: 'POST',
+                data: {
+                    action: 'africa_life_delete_agent',
+                    user_id: agentId,
+                    nonce: '<?php echo wp_create_nonce('africa_life_admin'); ?>'
+                },
+                success: function(response) {
+                    console.log('Agent delete response:', response);
+                    if (response.success) {
+                        showNotification('Agent deleted successfully', 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification('Error: ' + (response.data || 'Unknown error'), 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Agent delete error:', error);
+                    showNotification('An error occurred while deleting the agent.', 'error');
+                }
+            });
+        };
+    });
+    </script>
+    <?php
+    return ob_get_clean();
+}
     
     private function get_agent_submission_count($agent_id) {
         global $wpdb;
