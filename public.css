@@ -1,0 +1,96 @@
+/* Africa Life Plugin Public Styles */
+
+.africa-life-agent-container {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.africa-life-agent-container input,
+.africa-life-agent-container select,
+.africa-life-agent-container textarea {
+    transition: all 0.3s ease;
+}
+
+.africa-life-agent-container input:focus,
+.africa-life-agent-container select:focus,
+.africa-life-agent-container textarea:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.africa-life-admin-login,
+.africa-life-admin-dashboard {
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+}
+
+.form-section {
+    border-left: 4px solid #fbbf24;
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+}
+
+.submit-btn-glow {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.submit-btn-glow:hover {
+    box-shadow: 0 0 30px rgba(251, 191, 36, 0.7);
+}
+
+/* Custom scrollbar */
+.africa-life-agent-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.africa-life-agent-container::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.africa-life-agent-container::-webkit-scrollbar-thumb {
+    background: #fbbf24;
+    border-radius: 4px;
+}
+
+.africa-life-agent-container::-webkit-scrollbar-thumb:hover {
+    background: #f59e0b;
+}
+
+/* Loading animation */
+.loading-spinner {
+    border: 3px solid #374151;
+    border-top: 3px solid #fbbf24;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .africa-life-agent-container .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .africa-life-agent-container .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Print styles for PDF generation */
+@media print {
+    .africa-life-agent-container {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .africa-life-agent-container .bg-black,
+    .africa-life-agent-container .bg-gray-900,
+    .africa-life-agent-container .bg-gray-800 {
+        background: white !important;
+        color: black !important;
+    }
+}
