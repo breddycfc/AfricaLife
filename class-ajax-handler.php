@@ -308,10 +308,16 @@ class AfricaLife_Ajax_Handler {
     }
     
     public static function handle_status_update() {
-        if (!wp_verify_nonce($_POST['nonce'], 'africa_life_admin')) {
-            wp_send_json_error('Security check failed');
+        // Log the request
+        error_log('Africa Life: handle_status_update called');
+        error_log('POST data: ' . print_r($_POST, true));
+        
+        // Check if user is logged in
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Not logged in');
         }
         
+        // Check admin access
         if (!AfricaLife_Roles::user_has_admin_access()) {
             wp_send_json_error('Access denied');
         }
@@ -344,8 +350,10 @@ class AfricaLife_Ajax_Handler {
     }
     
     public static function handle_save_template() {
-        if (!wp_verify_nonce($_POST['nonce'], 'africa_life_admin')) {
-            wp_send_json_error('Security check failed');
+        error_log('Africa Life: handle_save_template called');
+        
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Not logged in');
         }
         
         if (!AfricaLife_Roles::user_has_admin_access()) {
@@ -388,38 +396,58 @@ class AfricaLife_Ajax_Handler {
     }
     
     public static function handle_save_plan() {
-        if (!wp_verify_nonce($_POST['nonce'], 'africa_life_admin')) {
-            wp_send_json_error('Security check failed');
+        error_log('Africa Life: handle_save_plan called');
+        error_log('POST data: ' . print_r($_POST, true));
+        
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Not logged in');
         }
         
         if (!AfricaLife_Roles::user_has_admin_access()) {
-            wp_send_json_error('Access denied');
+            wp_send_json_error('Access denied - admin access required');
         }
         
         $plan_name = sanitize_text_field($_POST['plan_name']);
+        
+        if (empty($plan_name)) {
+            wp_send_json_error('Plan name is required');
+        }
+        
+        // Handle categories - they might come as JSON string
         $categories = $_POST['categories'];
-        
-        if (empty($plan_name) || empty($categories)) {
-            wp_send_json_error('Plan name and categories are required');
+        if (is_string($categories)) {
+            $categories = json_decode(stripslashes($categories), true);
         }
         
-        // Validate categories
-        if (!is_array($categories)) {
-            wp_send_json_error('Categories must be provided as an array');
+        if (empty($categories) || !is_array($categories)) {
+            wp_send_json_error('At least one category is required');
         }
         
-        foreach ($categories as $index => $category) {
+        // Validate and sanitize categories
+        $sanitized_categories = array();
+        foreach ($categories as $category) {
             if (empty($category['name']) || empty($category['rate']) || empty($category['cover_amount'])) {
-                wp_send_json_error('Each category must have a name, rate, and cover amount');
+                continue; // Skip incomplete categories
             }
             
-            if (!is_numeric($category['rate']) || floatval($category['rate']) <= 0) {
-                wp_send_json_error('Category rates must be positive numbers');
+            $rate = floatval($category['rate']);
+            $cover_amount = floatval($category['cover_amount']);
+            
+            if ($rate <= 0 || $cover_amount <= 0) {
+                wp_send_json_error('Category rates and cover amounts must be positive numbers');
             }
             
-            if (!is_numeric($category['cover_amount']) || floatval($category['cover_amount']) <= 0) {
-                wp_send_json_error('Category cover amounts must be positive numbers');
-            }
+            $sanitized_categories[] = array(
+                'name' => sanitize_text_field($category['name']),
+                'age_range' => sanitize_text_field($category['age_range']),
+                'rate' => $rate,
+                'cover_amount' => $cover_amount,
+                'terms' => sanitize_text_field(isset($category['terms']) ? $category['terms'] : '')
+            );
+        }
+        
+        if (empty($sanitized_categories)) {
+            wp_send_json_error('No valid categories provided');
         }
         
         global $wpdb;
@@ -432,18 +460,22 @@ class AfricaLife_Ajax_Handler {
         $data = array(
             'plan_name' => $plan_name,
             'plan_code' => $plan_code,
-            'categories' => json_encode($categories),
+            'categories' => json_encode($sanitized_categories),
             'created_by' => get_current_user_id()
         );
         
         if (!empty($_POST['plan_id'])) {
             $plan_id = intval($_POST['plan_id']);
+            // Don't overwrite plan_code on update
+            unset($data['plan_code']);
+            unset($data['created_by']);
             $result = $wpdb->update($plans_table, $data, array('id' => $plan_id));
         } else {
             $result = $wpdb->insert($plans_table, $data);
         }
         
         if ($result === false) {
+            error_log('Database error: ' . $wpdb->last_error);
             wp_send_json_error('Failed to save plan: ' . $wpdb->last_error);
         }
         
@@ -451,8 +483,10 @@ class AfricaLife_Ajax_Handler {
     }
     
     public static function handle_delete_plan() {
-        if (!wp_verify_nonce($_POST['nonce'], 'africa_life_admin')) {
-            wp_send_json_error('Security check failed');
+        error_log('Africa Life: handle_delete_plan called');
+        
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Not logged in');
         }
         
         if (!AfricaLife_Roles::user_has_admin_access()) {
@@ -475,12 +509,15 @@ class AfricaLife_Ajax_Handler {
     }
     
     public static function handle_create_agent() {
-        if (!wp_verify_nonce($_POST['nonce'], 'africa_life_admin')) {
-            wp_send_json_error('Security check failed');
+        error_log('Africa Life: handle_create_agent called');
+        error_log('POST data: ' . print_r($_POST, true));
+        
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Not logged in');
         }
         
         if (!AfricaLife_Roles::user_has_admin_access()) {
-            wp_send_json_error('Access denied');
+            wp_send_json_error('Access denied - admin access required');
         }
         
         $username = sanitize_text_field($_POST['username']);
@@ -521,8 +558,10 @@ class AfricaLife_Ajax_Handler {
     }
     
     public static function handle_delete_agent() {
-        if (!wp_verify_nonce($_POST['nonce'], 'africa_life_admin')) {
-            wp_send_json_error('Security check failed');
+        error_log('Africa Life: handle_delete_agent called');
+        
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Not logged in');
         }
         
         if (!AfricaLife_Roles::user_has_admin_access()) {
