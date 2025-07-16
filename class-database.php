@@ -6,129 +6,287 @@ if (!defined('ABSPATH')) {
 class AfricaLife_Database {
     
     public static function create_tables() {
-        global $wpdb;
-        
-        $charset_collate = $wpdb->get_charset_collate();
-        
-        // Main submissions table with all PDF form fields
-        $submissions_table = $wpdb->prefix . 'africa_life_submissions';
-        $sql = "CREATE TABLE IF NOT EXISTS $submissions_table (
-            id int(11) NOT NULL AUTO_INCREMENT,
-            agent_id int(11) NOT NULL,
-            application_number varchar(50) NOT NULL,
-            
-            -- Contract Details
-            member_number varchar(50) NOT NULL,
-            category varchar(100),
-            cover_amount decimal(10,2),
-            entry_date date,
-            cover_date date,
-            total_premium decimal(10,2),
-            risk_premium decimal(10,2),
-            marketing_admin_fee decimal(10,2),
-            plan_id int(11) NOT NULL,
-            
-            -- Main Member Details
-            main_surname varchar(255) NOT NULL,
-            main_full_names varchar(255) NOT NULL,
-            main_title varchar(20) NOT NULL,
-            main_id_number varchar(13) NOT NULL,
-            main_date_of_birth date NOT NULL,
-            main_address text NOT NULL,
-            main_postal_code varchar(10) NOT NULL,
-            main_email varchar(255) NOT NULL,
-            main_contact_numbers varchar(255) NOT NULL,
-            main_preferred_language enum('English','Afrikaans','Xhosa') DEFAULT 'English',
-            
-            -- Spouse Details
-            spouse_surname varchar(255),
-            spouse_full_names varchar(255),
-            spouse_id_number varchar(13),
-            spouse_date_of_birth date,
-            spouse_relationship enum('Married','Living Together',''),
-            
-            -- Beneficiary Details
-            beneficiary_name_surname varchar(255) NOT NULL,
-            beneficiary_relationship varchar(100) NOT NULL,
-            beneficiary_id_number varchar(13) NOT NULL,
-            beneficiary_telephone varchar(50) NOT NULL,
-            
-            -- Bank Details
-            bank_account_holder varchar(255) NOT NULL,
-            bank_address text NOT NULL,
-            bank_name varchar(100) NOT NULL,
-            bank_branch_code varchar(10) NOT NULL,
-            bank_account_number varchar(50) NOT NULL,
-            bank_account_type enum('Current','Savings','Transmission') NOT NULL,
-            bank_contact_number varchar(50) NOT NULL,
-            bank_abbreviated_name varchar(255) NOT NULL,
-            
-            -- Declaration and Status
-            declaration_accepted tinyint(1) DEFAULT 1,
-            declaration_date datetime,
-            verbal_consent tinyint(1) DEFAULT 1,
-            
-            submission_date datetime DEFAULT CURRENT_TIMESTAMP,
-            status varchar(50) DEFAULT 'Pending',
-            pdf_file varchar(500),
-            
-            PRIMARY KEY (id),
-            UNIQUE KEY application_number (application_number),
-            KEY agent_id (agent_id),
-            KEY plan_id (plan_id),
-            KEY status (status),
-            KEY main_id_number (main_id_number),
-            KEY submission_date (submission_date)
-        ) $charset_collate;";
-        
-        // Children/Dependents table
-        $dependents_table = $wpdb->prefix . 'africa_life_dependents';
-        $sql .= "CREATE TABLE IF NOT EXISTS $dependents_table (
-            id int(11) NOT NULL AUTO_INCREMENT,
-            submission_id int(11) NOT NULL,
-            dependent_type enum('child','extended_family') NOT NULL,
-            surname varchar(255) NOT NULL,
-            full_names varchar(255) NOT NULL,
-            relationship varchar(100) NOT NULL,
-            id_number varchar(13) NOT NULL,
-            PRIMARY KEY (id),
-            KEY submission_id (submission_id),
-            KEY dependent_type (dependent_type)
-        ) $charset_collate;";
-        
-        // Plans table
-        $plans_table = $wpdb->prefix . 'africa_life_plans';
-        $sql .= "CREATE TABLE IF NOT EXISTS $plans_table (
+    global $wpdb;
+    
+    $charset_collate = $wpdb->get_charset_collate();
+    
+    // Ensure we have the required functions
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    
+    // Main submissions table
+    $submissions_table = $wpdb->prefix . 'africa_life_submissions';
+    $sql1 = "CREATE TABLE IF NOT EXISTS $submissions_table (
+        id int(11) NOT NULL AUTO_INCREMENT,
+        agent_id int(11) NOT NULL,
+        application_number varchar(50) NOT NULL,
+        member_number varchar(50) NOT NULL,
+        category varchar(100),
+        cover_amount decimal(10,2),
+        entry_date date,
+        cover_date date,
+        total_premium decimal(10,2),
+        risk_premium decimal(10,2),
+        marketing_admin_fee decimal(10,2),
+        plan_id int(11) NOT NULL,
+        main_surname varchar(255) NOT NULL,
+        main_full_names varchar(255) NOT NULL,
+        main_title varchar(20) NOT NULL,
+        main_id_number varchar(13) NOT NULL,
+        main_date_of_birth date NOT NULL,
+        main_address text NOT NULL,
+        main_postal_code varchar(10) NOT NULL,
+        main_email varchar(255) NOT NULL,
+        main_contact_numbers varchar(255) NOT NULL,
+        main_preferred_language enum('English','Afrikaans','Xhosa') DEFAULT 'English',
+        spouse_surname varchar(255),
+        spouse_full_names varchar(255),
+        spouse_id_number varchar(13),
+        spouse_date_of_birth date,
+        spouse_relationship enum('Married','Living Together',''),
+        beneficiary_name_surname varchar(255) NOT NULL,
+        beneficiary_relationship varchar(100) NOT NULL,
+        beneficiary_id_number varchar(13) NOT NULL,
+        beneficiary_telephone varchar(50) NOT NULL,
+        bank_account_holder varchar(255) NOT NULL,
+        bank_address text NOT NULL,
+        bank_name varchar(100) NOT NULL,
+        bank_branch_code varchar(10) NOT NULL,
+        bank_account_number varchar(50) NOT NULL,
+        bank_account_type enum('Current','Savings','Transmission') NOT NULL,
+        bank_contact_number varchar(50) NOT NULL,
+        bank_abbreviated_name varchar(255) NOT NULL,
+        declaration_accepted tinyint(1) DEFAULT 1,
+        declaration_date datetime,
+        verbal_consent tinyint(1) DEFAULT 1,
+        submission_date datetime DEFAULT CURRENT_TIMESTAMP,
+        status varchar(50) DEFAULT 'Pending',
+        pdf_file varchar(500),
+        PRIMARY KEY (id),
+        UNIQUE KEY application_number (application_number),
+        KEY agent_id (agent_id),
+        KEY plan_id (plan_id),
+        KEY status (status),
+        KEY main_id_number (main_id_number),
+        KEY submission_date (submission_date)
+    ) $charset_collate;";
+    
+    dbDelta($sql1);
+    
+    // Children/Dependents table
+    $dependents_table = $wpdb->prefix . 'africa_life_dependents';
+    $sql2 = "CREATE TABLE IF NOT EXISTS $dependents_table (
+        id int(11) NOT NULL AUTO_INCREMENT,
+        submission_id int(11) NOT NULL,
+        dependent_type enum('child','extended_family') NOT NULL,
+        surname varchar(255) NOT NULL,
+        full_names varchar(255) NOT NULL,
+        relationship varchar(100) NOT NULL,
+        id_number varchar(13) NOT NULL,
+        PRIMARY KEY (id),
+        KEY submission_id (submission_id),
+        KEY dependent_type (dependent_type)
+    ) $charset_collate;";
+    
+    dbDelta($sql2);
+    
+    // Plans table
+    $plans_table = $wpdb->prefix . 'africa_life_plans';
+    $sql3 = "CREATE TABLE IF NOT EXISTS $plans_table (
+        id int(11) NOT NULL AUTO_INCREMENT,
+        plan_name varchar(255) NOT NULL,
+        plan_code varchar(50) NOT NULL,
+        categories longtext NOT NULL,
+        created_by int(11) NOT NULL,
+        created_date datetime DEFAULT CURRENT_TIMESTAMP,
+        updated_date datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY plan_code (plan_code)
+    ) $charset_collate;";
+    
+    // For older MySQL versions that don't support ON UPDATE CURRENT_TIMESTAMP
+    $mysql_version = $wpdb->db_version();
+    if (version_compare($mysql_version, '5.6.5', '<')) {
+        $sql3 = "CREATE TABLE IF NOT EXISTS $plans_table (
             id int(11) NOT NULL AUTO_INCREMENT,
             plan_name varchar(255) NOT NULL,
             plan_code varchar(50) NOT NULL,
             categories longtext NOT NULL,
             created_by int(11) NOT NULL,
             created_date datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_date datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_date datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             UNIQUE KEY plan_code (plan_code)
         ) $charset_collate;";
-        
-        // Templates table
-        $templates_table = $wpdb->prefix . 'africa_life_templates';
-        $sql .= "CREATE TABLE IF NOT EXISTS $templates_table (
-            id int(11) NOT NULL AUTO_INCREMENT,
-            template_type varchar(50) NOT NULL,
-            template_content longtext NOT NULL,
-            logo_path varchar(500),
-            updated_by int(11) NOT NULL,
-            updated_date datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY template_type (template_type)
-        ) $charset_collate;";
-        
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
-        
-        self::insert_default_templates();
-        self::insert_default_plans();
     }
+    
+    dbDelta($sql3);
+    
+    // Templates table
+    $templates_table = $wpdb->prefix . 'africa_life_templates';
+    $sql4 = "CREATE TABLE IF NOT EXISTS $templates_table (
+        id int(11) NOT NULL AUTO_INCREMENT,
+        template_type varchar(50) NOT NULL,
+        template_content longtext NOT NULL,
+        logo_path varchar(500),
+        updated_by int(11) NOT NULL,
+        updated_date datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY template_type (template_type)
+    ) $charset_collate;";
+    
+    dbDelta($sql4);
+		
+	// Add this after the templates table creation in create_tables() method
+// QA Assignments table
+$qa_assignments_table = $wpdb->prefix . 'africa_life_qa_assignments';
+$sql5 = "CREATE TABLE IF NOT EXISTS $qa_assignments_table (
+    id int(11) NOT NULL AUTO_INCREMENT,
+    qa_user_id int(11) NOT NULL,
+    agent_id int(11) NOT NULL,
+    assigned_date datetime DEFAULT CURRENT_TIMESTAMP,
+    assigned_by int(11) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY qa_agent (qa_user_id, agent_id),
+    KEY qa_user_id (qa_user_id),
+    KEY agent_id (agent_id)
+) $charset_collate;";
+
+dbDelta($sql5);
+    
+    // Log any errors
+    if ($wpdb->last_error) {
+        error_log('Africa Life table creation error: ' . $wpdb->last_error);
+    }
+    
+    // Verify tables were created
+    $tables_created = array();
+    $tables_to_check = array(
+        'africa_life_submissions',
+        'africa_life_dependents', 
+        'africa_life_plans',
+        'africa_life_templates'
+    );
+    
+    foreach ($tables_to_check as $table) {
+        $full_table_name = $wpdb->prefix . $table;
+        $exists = $wpdb->get_var("SHOW TABLES LIKE '$full_table_name'");
+        if ($exists) {
+            $tables_created[] = $table;
+        } else {
+            error_log("Africa Life: Failed to create table $full_table_name");
+        }
+    }
+    
+    // Update database version
+    update_option('africa_life_db_version', '1.0');
+    
+    // Insert default data
+    self::insert_default_templates();
+    self::insert_default_plans();
+    
+    return $tables_created;
+}
+	
+	
+	
+	
+	
+// Add these methods to the AfricaLife_Database class
+
+public static function get_submissions_for_qa($qa_user_id, $status = null) {
+    global $wpdb;
+    
+    $submissions_table = $wpdb->prefix . 'africa_life_submissions';
+    $assignments_table = $wpdb->prefix . 'africa_life_qa_assignments';
+    
+    $query = "SELECT s.* FROM $submissions_table s 
+              INNER JOIN $assignments_table a ON s.agent_id = a.agent_id 
+              WHERE a.qa_user_id = %d";
+    $params = array($qa_user_id);
+    
+    if ($status) {
+        $query .= " AND s.status = %s";
+        $params[] = $status;
+    }
+    
+    $query .= " ORDER BY s.submission_date DESC";
+    
+    return $wpdb->get_results($wpdb->prepare($query, $params));
+}
+
+public static function get_dashboard_stats_for_qa($qa_user_id) {
+    global $wpdb;
+    
+    $submissions_table = $wpdb->prefix . 'africa_life_submissions';
+    $assignments_table = $wpdb->prefix . 'africa_life_qa_assignments';
+    $plans_table = $wpdb->prefix . 'africa_life_plans';
+    
+    // Basic counts for QA's assigned agents only
+    $total = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $submissions_table s 
+        INNER JOIN $assignments_table a ON s.agent_id = a.agent_id 
+        WHERE a.qa_user_id = %d",
+        $qa_user_id
+    ));
+    
+    $approved = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $submissions_table s 
+        INNER JOIN $assignments_table a ON s.agent_id = a.agent_id 
+        WHERE a.qa_user_id = %d AND s.status = 'Approved'",
+        $qa_user_id
+    ));
+    
+    $declined = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $submissions_table s 
+        INNER JOIN $assignments_table a ON s.agent_id = a.agent_id 
+        WHERE a.qa_user_id = %d AND s.status = 'Declined'",
+        $qa_user_id
+    ));
+    
+    $pending = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $submissions_table s 
+        INNER JOIN $assignments_table a ON s.agent_id = a.agent_id 
+        WHERE a.qa_user_id = %d AND s.status = 'Pending'",
+        $qa_user_id
+    ));
+    
+    // Monthly premium for QA's assigned agents
+    $monthly_premium = $wpdb->get_var($wpdb->prepare(
+        "SELECT SUM(s.total_premium) FROM $submissions_table s 
+        INNER JOIN $assignments_table a ON s.agent_id = a.agent_id 
+        WHERE a.qa_user_id = %d 
+        AND s.status = 'Approved' 
+        AND MONTH(s.submission_date) = MONTH(CURRENT_DATE())
+        AND YEAR(s.submission_date) = YEAR(CURRENT_DATE())",
+        $qa_user_id
+    ));
+    
+    // Recent applications for QA's assigned agents
+    $recent_applications = $wpdb->get_results($wpdb->prepare(
+        "SELECT s.*, p.plan_name 
+        FROM $submissions_table s
+        INNER JOIN $assignments_table a ON s.agent_id = a.agent_id
+        LEFT JOIN $plans_table p ON s.plan_id = p.id
+        WHERE a.qa_user_id = %d
+        ORDER BY s.submission_date DESC 
+        LIMIT 10",
+        $qa_user_id
+    ));
+    
+    return array(
+        'total' => intval($total),
+        'approved' => intval($approved),
+        'declined' => intval($declined),
+        'pending' => intval($pending),
+        'monthly_premium' => floatval($monthly_premium),
+        'recent_applications' => $recent_applications
+    );
+}	
+	
+	
+	
+	
+
     
     // New method to update existing tables for PDF form fields
     public static function update_tables_for_pdf() {
