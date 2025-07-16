@@ -132,7 +132,7 @@ jQuery(document).ready(function($) {
     );
     
     // Modal handling
-    function showModal(title, content, actions) {
+    window.showModal = function(title, content, actions) {
         var modal = $('<div class="admin-modal fixed inset-0 z-50 flex items-center justify-center p-4">' +
             '<div class="admin-modal-content max-w-lg w-full max-h-screen overflow-y-auto">' +
                 '<div class="p-6">' +
@@ -165,11 +165,20 @@ jQuery(document).ready(function($) {
         return modal;
     }
     
-    function closeModal(modal) {
-        modal.fadeOut(300, function() {
-            modal.remove();
-        });
+    window.closeModal = function(modal) {
+        if (!modal) {
+            $('.admin-modal').fadeOut(300, function() {
+                $(this).remove();
+            });
+        } else {
+            modal.fadeOut(300, function() {
+                modal.remove();
+            });
+        }
     }
+    
+    // Global showNotification function
+    window.showNotification = showNotification;
     
     // Form handling with validation
     function handleFormSubmission(form, action, successMessage, onSuccess) {
@@ -328,24 +337,13 @@ jQuery(document).ready(function($) {
     
     // AJAX error handling
     $(document).ajaxError(function(event, xhr, settings, thrownError) {
+        console.error('AJAX Error:', xhr.status, thrownError);
+        console.error('Response:', xhr.responseText);
+        
         if (xhr.status === 403) {
             showNotification('Access denied. Please refresh the page and try again.', 'error');
         } else if (xhr.status === 500) {
             showNotification('Server error occurred. Please try again later.', 'error');
         }
     });
-    
-    // Performance monitoring
-    var performanceObserver = new PerformanceObserver(function(list) {
-        var entries = list.getEntries();
-        entries.forEach(function(entry) {
-            if (entry.duration > 1000) {
-                console.warn('Slow operation detected:', entry.name, entry.duration + 'ms');
-            }
-        });
-    });
-    
-    if (typeof PerformanceObserver !== 'undefined') {
-        performanceObserver.observe({entryTypes: ['measure', 'navigation']});
-    }
 });
