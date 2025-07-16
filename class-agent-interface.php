@@ -608,7 +608,7 @@ class AfricaLife_Agent_Interface {
                     contentType: false,
                     success: function(response) {
                         if (response.success) {
-                            alert('Application submitted successfully! PDF has been generated and emails have been sent.');
+                            alert('Submitted successfully! Awaiting QA');
                             $form[0].reset();
                             $('.plan-card').removeClass('selected');
                             $('#africa-life-application-form').slideUp();
